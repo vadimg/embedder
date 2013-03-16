@@ -46,10 +46,10 @@ int get_symbol(const char* name, void** start, void** end) {
     return 0;
 }
 
-int main()
-{
+int print_sym(const char* sym) {
     char *start, *end;
-    int rc = get_symbol("data_txt", (void**) &start, (void**) &end);
+
+    int rc = get_symbol(sym, (void**) &start, (void**) &end);
     if (rc) {
         printf("ERROR %d\n\n", rc);
         return 1;
@@ -59,5 +59,19 @@ int main()
         putchar(*start);
         ++start;
     }
+
+    return 0;
+}
+
+int main()
+{
+    if (print_sym("data_txt")) {
+        return 1;
+    }
+
+    if (print_sym("data2_txt")) {
+        return 1;
+    }
+
     return 0;
 }

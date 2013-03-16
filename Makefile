@@ -1,5 +1,7 @@
 UNAME = uname
 EGREP = egrep
+EMBED_DIR = embedded_files
+OBJDIR = obj
 
 # objcopy flags
 IS_I386 = $(shell $(UNAME) -m 2>&1 | $(EGREP) -i -c "^i386")
@@ -15,16 +17,25 @@ ifneq ($(IS_X86_64),0)
   OBJCOPY_ARCH = i386
 endif
 
+# embedded files
+EMBEDDED_FILES = $(shell sh -c 'ls $(EMBED_DIR)/*')
+EMBEDDED_OBJ = $(EMBEDDED_FILES:$(EMBED_DIR)/%=$(OBJDIR)/%.o)
+
 all: embedded code
-	gcc -rdynamic main.o data.o -ldl
+	gcc -rdynamic main.o $(EMBEDDED_OBJ) -ldl
 
 code:
 	gcc -g -c main.c -o main.o
 
-embedded:
-	objcopy --input binary \
+$(OBJDIR)/%.o: embedded_files/% | $(OBJDIR)
+	cd $(EMBED_DIR) && objcopy --input binary \
             --output $(OBJCOPY_OUTPUT) \
-            --binary-architecture $(OBJCOPY_ARCH) data.txt data.o
+			--binary-architecture $(OBJCOPY_ARCH) $(<F) ../$@
+
+embedded: $(EMBEDDED_OBJ)
+
+$(OBJDIR):
+	test -d $(OBJDIR) || mkdir $(OBJDIR)
 
 clean:
-	rm -f *.o a.out
+	rm -rf *.o obj a.out
